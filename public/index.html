@@ -687,6 +687,7 @@
           body: JSON.stringify({ messages: localChatHistory })
         });
         const data = await res.json();
+        
         if (data.reply) {
           addMessage('assistant', data.reply);
           localChatHistory.push({ role: 'assistant', content: data.reply });
@@ -698,10 +699,12 @@
           });
           playTTS(data.reply);
         } else {
-          addMessage('assistant', 'Бжж-кхх... Андроник провод перегрыз!');
+          // Если есть точная ошибка с сервера — показываем её
+          const errText = data.error || 'Бжж-кхх... Андроник провод перегрыз!';
+          addMessage('assistant', `⚠️ Ошибка: ${errText}`);
         }
       } catch (err) {
-        addMessage('assistant', 'Сбой связи с сервером.');
+        addMessage('assistant', `⚠️ Сбой сети: ${err.message}`);
       } finally {
         sendBtn.disabled = false;
         statusText.textContent = 'Готов торговать';
