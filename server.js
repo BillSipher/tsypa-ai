@@ -42,7 +42,19 @@ app.post('/api/chat', async (req, res) => {
       parts: [{ text: msg.content }]
     }));
 
-    const apiKey = (process.env.GEMINI_API_KEY || '').replace(/\s+/g, '').trim();
+    onst apiKey = (process.env.GEMINI_API_KEY || '').trim();
+    if (!apiKey) {
+      return res.status(500).json({ 
+        error: 'GEMINI_API_KEY не задан в переменных окружения Render (Environment Variables).' 
+      });
+    }
+
+    const contents = messages.map(msg => ({
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: msg.content }]
+    }));
+
+    let lastError = null;
 
     for (const modelName of MODELS_TO_TRY) {
       try {
@@ -59,32 +71,39 @@ app.post('/api/chat', async (req, res) => {
               contents: contents,
               generationConfig: {
                 temperature: 0.8,
-                maxOutputTokens: 4096
+                maxOutputTokens: 2048
               }
             })
           }
         );
 
         const data = await response.json();
+
         if (!response.ok) {
+          lastError = data.error?.message || `Ошибка API (${response.status})`;
+          // Если 503 перегруз — пробуем следующую модель
           if (response.status === 503 || response.status === 429) continue;
-          return res.status(response.status).json({ error: data.error?.message || 'Ошибка API' });
+          // Если ошибка ключа или запроса — возвращаем сразу
+          return res.status(response.status).json({ error: lastError });
         }
 
-        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Ответ не получен';
-        return res.json({ reply });
+        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (reply) {
+          return res.json({ reply });
+        }
       } catch (err) {
+        lastError = err.message;
         continue;
       }
     }
 
-    res.status(503).json({ error: 'Все модели сейчас перегружены. Попробуйте через минуту.' });
+    res.status(503).json({ error: lastError || 'Все модели перегружены или недоступны.' });
   } catch (error) {
     console.error('Ошибка сервера в чате:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
+    res.status(500).json({ error: error.message || 'Внутренняя ошибка сервера' });
   }
 });
 
 app.listen(port, () => {
-  console.log(`Сервер запущен и работает: http://localhost:${port}`);
+  console.log(`Сервер запущен на порту ${port}`);
 });
