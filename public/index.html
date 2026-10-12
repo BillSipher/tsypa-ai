@@ -24,9 +24,18 @@
 
   <style>
     * {
+      box-sizing: border-box;
       transition: background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
                   border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
                   color 0.2s ease;
+    }
+
+    html, body {
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
     }
 
     @keyframes blob-morph-1 {
@@ -41,7 +50,7 @@
     .liquid-blob-2 { animation: blob-morph-2 22s infinite ease-in-out; }
 
     .dark .liquid-panel {
-      background: rgba(16, 20, 31, 0.75);
+      background: rgba(16, 20, 31, 0.78);
       backdrop-filter: blur(36px) saturate(210%);
       -webkit-backdrop-filter: blur(36px) saturate(210%);
       border: 1px solid rgba(255, 255, 255, 0.08);
@@ -68,7 +77,7 @@
     }
 
     html:not(.dark) .liquid-panel {
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(255, 255, 255, 0.88);
       backdrop-filter: blur(36px) saturate(180%);
       border: 1px solid rgba(255, 255, 255, 0.7);
       border-top: 1px solid rgba(255, 255, 255, 0.95);
@@ -107,13 +116,16 @@
     .prose-content p { margin-bottom: 0.75rem; }
     .prose-content p:last-child { margin-bottom: 0; }
 
-    /* Безопасный отступ для мобильных устройств (iOS Home Bar / Android Navigation) */
-    .mobile-safe-bottom {
+    /* Системные безопасные отступы для мобилок */
+    .safe-top-padding {
+      padding-top: max(0.6rem, env(safe-area-inset-top));
+    }
+    .safe-bottom-padding {
       padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
     }
   </style>
 </head>
-<body class="h-[100dvh] w-screen overflow-hidden relative bg-slate-100 dark:bg-[#07090e] text-slate-800 dark:text-slate-100 font-sans flex">
+<body class="w-screen h-[100dvh] relative bg-slate-100 dark:bg-[#07090e] text-slate-800 dark:text-slate-100 font-sans flex p-0 sm:p-3.5 gap-3.5">
 
   <!-- Фоновые капли -->
   <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
@@ -130,7 +142,6 @@
       <h2 class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white" id="auth-title">Вход в терминал</h2>
       <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-4 text-center" id="auth-subtitle">Любой никнейм и пароль для сохранения диалогов</p>
 
-      <!-- ПЕРЕКЛЮЧАТЕЛЬ РЕЖИМОВ -->
       <div class="w-full grid grid-cols-2 p-1 rounded-2xl bg-black/10 dark:bg-white/5 border border-black/5 dark:border-white/10 mb-4 cursor-pointer">
         <button type="button" id="tab-login" class="py-2 text-xs font-bold rounded-xl transition-all duration-200 bg-amber-400 text-slate-950 shadow-sm cursor-pointer">
           Вход
@@ -167,13 +178,11 @@
     </div>
   </div>
 
-  <!-- Затемняющий фон мобильного меню -->
+  <!-- Мобильный оверлей для бокового меню -->
   <div id="sidebar-backdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-30 opacity-0 pointer-events-none transition-opacity duration-300 md:hidden"></div>
 
-  <!-- БОКОВОЕ МЕНЮ С ИСТОРИЕЙ ЧАТОВ -->
-  <aside id="sidebar-panel" class="liquid-panel fixed md:static inset-y-2 left-2 w-80 max-w-[85vw] rounded-3xl md:rounded-4xl flex flex-col p-4 sm:p-5 shrink-0 z-40 -translate-x-[110%] md:translate-x-0 transition-transform duration-300 ease-out md:m-3.5 md:mr-0 shadow-2xl md:shadow-none h-[calc(100dvh-1rem)] md:h-[calc(100dvh-1.75rem)]">
-    
-    <!-- Шапка профиля -->
+  <!-- БОКОВОЕ МЕНЮ -->
+  <aside id="sidebar-panel" class="liquid-panel fixed md:static inset-y-0 left-0 w-80 max-w-[85vw] flex flex-col p-4 sm:p-5 shrink-0 z-40 -translate-x-[110%] md:translate-x-0 transition-transform duration-300 ease-out sm:rounded-4xl shadow-2xl md:shadow-none safe-top-padding safe-bottom-padding">
     <div class="flex items-center justify-between pb-3.5 border-b border-black/5 dark:border-white/10 shrink-0">
       <div class="flex items-center gap-3">
         <div class="w-11 h-11 rounded-2xl p-[1.5px] bg-gradient-to-tr from-amber-300 via-amber-400 to-orange-400 shadow-md">
@@ -190,45 +199,27 @@
       <button id="close-sidebar-btn" class="liquid-interactive p-2 rounded-xl text-slate-400 md:hidden">✕</button>
     </div>
 
-    <!-- КНОПКА СОЗДАНИЯ НОВОГО ЧАТА -->
     <button id="new-chat-btn" class="mt-3.5 w-full py-2.5 px-4 rounded-2xl bg-gradient-to-r from-amber-400/20 to-orange-400/20 hover:from-amber-400/30 hover:to-orange-400/30 border border-amber-400/30 text-amber-500 dark:text-amber-400 font-bold text-xs flex items-center justify-center gap-2 transition shadow-sm cursor-pointer shrink-0">
       <span class="text-base leading-none">+</span> Новый чат
     </button>
 
-    <!-- СПИСОК СОХРАНЕННЫХ ЧАТОВ ПОЛЬЗОВАТЕЛЯ -->
     <div class="flex-1 flex flex-col gap-1.5 overflow-y-auto my-3 pr-1" id="chats-list-container">
       <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1 mb-1">История диалогов</div>
-      <div id="chats-list" class="flex flex-col gap-1.5">
-        <!-- Сюда динамически подгружаются сохраненные чаты -->
-      </div>
+      <div id="chats-list" class="flex flex-col gap-1.5"></div>
     </div>
 
-    <!-- РАСШИРЕННЫЙ БЛОК: ФИШКИ ЦЫПЫ -->
     <div class="border-t border-black/5 dark:border-white/10 pt-2.5 flex flex-col gap-1.5 shrink-0">
       <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">Фишки Цыпы</span>
       <div class="grid grid-cols-2 gap-1.5">
-        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300 cursor-pointer" data-query="Что за принтерочек у тебя на продажу?">
-          🖨️ Принтерочек
-        </button>
-        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300 cursor-pointer" data-query="Расскажи про халявный тендер">
-          💼 Халявный тендер
-        </button>
-        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300 cursor-pointer" data-query="Зачем заходил Андроник и за что меня уволили?">
-          🚪 Звонок Андроника
-        </button>
-        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300 cursor-pointer" data-query="Выдай сочное битбокс соло на 10 секунд!">
-          🎤 Битбокс соло
-        </button>
-        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300 cursor-pointer" data-query="Есть ли у тебя списанный сервер или стойка?">
-          🖥️ Списанный сервер
-        </button>
-        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300 cursor-pointer" data-query="Как поднять бабла на госзакупках оргтехники?">
-          💰 Мутная схема
-        </button>
+        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300 cursor-pointer" data-query="Что за принтерочек у тебя на продажу?">🖨️ Принтерочек</button>
+        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300 cursor-pointer" data-query="Расскажи про халявный тендер">💼 Халявный тендер</button>
+        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300 cursor-pointer" data-query="Зачем заходил Андроник и за что меня уволили?">🚪 Звонок Андроника</button>
+        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300 cursor-pointer" data-query="Выдай сочное битбокс соло на 10 секунд!">🎤 Битбокс соло</button>
+        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300 cursor-pointer" data-query="Есть ли у тебя списанный сервер или стойка?">🖥️ Списанный сервер</button>
+        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300 cursor-pointer" data-query="Как поднять бабла на госзакупках оргтехники?">💰 Мутная схема</button>
       </div>
     </div>
 
-    <!-- Нижняя плашка темы и выхода -->
     <div class="pt-3 mt-2 border-t border-black/5 dark:border-white/10 flex items-center justify-between shrink-0">
       <button id="theme-btn" class="liquid-interactive px-3 py-2 rounded-2xl text-xs font-medium cursor-pointer">🌙 Тема</button>
       <button id="logout-btn" class="liquid-interactive p-2.5 rounded-2xl text-slate-400 hover:text-rose-500 cursor-pointer" title="Выйти из аккаунта">
@@ -237,11 +228,11 @@
     </div>
   </aside>
 
-  <!-- ОСНОВНАЯ РАБОЧАЯ ОБЛАСТЬ (СТРОГО ВПИСАНА В 100dvh) -->
-  <main class="flex-1 flex flex-col m-1.5 sm:m-3.5 relative rounded-2xl sm:rounded-4xl liquid-panel overflow-hidden z-10 min-w-0 h-[calc(100dvh-0.75rem)] sm:h-[calc(100dvh-1.75rem)]">
+  <!-- ОСНОВНАЯ РАБОЧАЯ ОБЛАСТЬ ЧАТА -->
+  <main class="flex-1 flex flex-col relative sm:rounded-4xl liquid-panel overflow-hidden z-10 min-w-0 h-full">
     
-    <!-- Верхняя шапка -->
-    <header class="px-3.5 sm:px-6 py-2.5 sm:py-3.5 flex items-center justify-between border-b border-black/5 dark:border-white/10 shrink-0">
+    <!-- Фиксированная шапка с учетом челки / строки статуса -->
+    <header class="px-3.5 sm:px-6 py-2 sm:py-3.5 flex items-center justify-between border-b border-black/5 dark:border-white/10 shrink-0 safe-top-padding">
       <div class="flex items-center gap-2.5 sm:gap-3">
         <button id="open-sidebar-btn" class="liquid-interactive p-2 rounded-xl text-slate-700 dark:text-slate-200 md:hidden cursor-pointer">☰</button>
         <div class="w-8 h-8 rounded-xl bg-amber-400 flex items-center justify-center text-xs shrink-0 md:hidden">🐣</div>
@@ -272,15 +263,15 @@
       </div>
     </header>
 
-    <!-- Скролл-область сообщений -->
+    <!-- Скролл сообщений -->
     <div class="flex-1 overflow-y-auto px-3 sm:px-6 py-3 sm:py-6 flex flex-col gap-3 sm:gap-4 min-h-0" id="chat-container">
       <div class="max-w-3xl w-full mx-auto flex flex-col gap-3 sm:gap-4" id="messages-list"></div>
     </div>
 
-    <!-- Нижняя панель ввода (с защитой от вылета за экран) -->
-    <div class="p-2 sm:p-4 pt-1 shrink-0 mobile-safe-bottom">
+    <!-- Поле ввода, прижатое к безопасной нижней зоне -->
+    <div class="p-2 sm:p-4 pt-1 shrink-0 safe-bottom-padding">
       <div class="max-w-3xl w-full mx-auto">
-        <form id="chat-form" class="liquid-card rounded-2xl sm:rounded-3xl p-1 sm:p-2 flex items-end gap-1.5 sm:gap-2">
+        <form id="chat-form" class="liquid-card rounded-2xl sm:rounded-3xl p-1.5 sm:p-2 flex items-end gap-1.5 sm:gap-2">
           <button type="button" id="mic-btn" class="p-2 sm:p-2.5 rounded-xl text-slate-400 hover:text-amber-500 cursor-pointer shrink-0" title="Микрофон">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
           </button>
@@ -588,7 +579,6 @@
       chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
     }
 
-    // Автоподстройка высоты текстового поля при вводе
     input.addEventListener('input', () => {
       input.style.height = 'auto';
       input.style.height = Math.min(input.scrollHeight, 120) + 'px';
