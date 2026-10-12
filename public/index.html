@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ЦЫПА // Liquid Workspace</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { borderRadius: { '4xl': '2rem', '5xl': '2.5rem' } } }
+    }
+  </script>
+
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Marked для Markdown -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- Highlight.js -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+  <style>
+    * {
+      transition: background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                  border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                  color 0.2s ease;
+    }
+
+    @keyframes blob-morph-1 {
+      0%, 100% { transform: translate(0px, 0px) scale(1); border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%; }
+      50% { transform: translate(35px, -45px) scale(1.1); border-radius: 70% 30% 46% 54% / 30% 29% 71% 70%; }
+    }
+    @keyframes blob-morph-2 {
+      0%, 100% { transform: translate(0px, 0px) scale(1); border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+      50% { transform: translate(-45px, 35px) scale(1.15); border-radius: 40% 60% 70% 30% / 40% 40% 60% 60%; }
+    }
+    .liquid-blob-1 { animation: blob-morph-1 18s infinite ease-in-out; }
+    .liquid-blob-2 { animation: blob-morph-2 22s infinite ease-in-out; }
+
+    .dark .liquid-panel {
+      background: rgba(16, 20, 31, 0.75);
+      backdrop-filter: blur(36px) saturate(210%);
+      -webkit-backdrop-filter: blur(36px) saturate(210%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+    .dark .liquid-card {
+      background: rgba(22, 28, 44, 0.7);
+      backdrop-filter: blur(28px) saturate(190%);
+      -webkit-backdrop-filter: blur(28px) saturate(190%);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-top: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
+    .dark .liquid-interactive {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .dark .liquid-interactive:hover {
+      background: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    html:not(.dark) .liquid-panel {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(36px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-top: 1px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 20px 40px -10px rgba(100, 116, 139, 0.18);
+    }
+    html:not(.dark) .liquid-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(28px) saturate(160%);
+      border: 1px solid rgba(226, 232, 240, 0.7);
+      border-top: 1px solid rgba(255, 255, 255, 1);
+      box-shadow: 0 10px 24px -6px rgba(148, 163, 184, 0.15);
+    }
+    html:not(.dark) .liquid-interactive {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(203, 213, 225, 0.6);
+      border-top: 1px solid rgba(255, 255, 255, 1);
+    }
+
+    .user-bubble {
+      background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 20px -4px rgba(14, 165, 233, 0.4);
+    }
+
+    @keyframes eq-bounce { 0%, 100% { height: 4px; } 50% { height: 18px; } }
+    .sound-bar { width: 3px; border-radius: 9999px; transition: height 0.15s ease; }
+    .sound-active .sound-bar:nth-child(1) { animation: eq-bounce 0.4s infinite ease-in-out; }
+    .sound-active .sound-bar:nth-child(2) { animation: eq-bounce 0.3s infinite ease-in-out 0.1s; }
+    .sound-active .sound-bar:nth-child(3) { animation: eq-bounce 0.5s infinite ease-in-out 0.2s; }
+    .sound-active .sound-bar:nth-child(4) { animation: eq-bounce 0.35s infinite ease-in-out 0.05s; }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.25); border-radius: 9999px; }
+    .prose-content { word-break: break-word; line-height: 1.62; }
+    .prose-content p { margin-bottom: 0.75rem; }
+    .prose-content p:last-child { margin-bottom: 0; }
+  </style>
+</head>
+<body class="h-screen w-screen overflow-hidden relative bg-slate-100 dark:bg-[#07090e] text-slate-800 dark:text-slate-100 font-sans flex">
+
+  <!-- Фоновые капли -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="liquid-blob-1 absolute -top-24 -left-20 w-[550px] h-[550px] bg-gradient-to-tr from-amber-400/25 via-emerald-400/20 to-teal-400/20 dark:from-amber-500/15 dark:via-emerald-500/10 dark:to-cyan-500/15 blur-[90px]"></div>
+    <div class="liquid-blob-2 absolute -bottom-32 -right-20 w-[600px] h-[600px] bg-gradient-to-bl from-sky-400/25 via-indigo-400/20 to-rose-400/15 dark:from-sky-500/10 dark:via-indigo-500/15 dark:to-rose-500/10 blur-[110px]"></div>
+  </div>
+
+  <!-- МОДАЛЬНОЕ ОКНО АВТОРИЗАЦИИ / РЕГИСТРАЦИИ -->
+  <div id="auth-screen" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md">
+    <div class="liquid-panel w-full max-w-sm rounded-4xl p-6 sm:p-8 flex flex-col items-center relative shadow-2xl z-[101]">
+      <div class="w-16 h-16 rounded-3xl bg-amber-400 flex items-center justify-center text-3xl shadow-lg mb-3">
+        🐣
+      </div>
+      <h2 class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white" id="auth-title">Вход в терминал</h2>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-4 text-center" id="auth-subtitle">Любой никнейм и пароль для сохранения диалогов</p>
+
+      <!-- ПЕРЕКЛЮЧАТЕЛЬ РЕЖИМОВ -->
+      <div class="w-full grid grid-cols-2 p-1 rounded-2xl bg-black/10 dark:bg-white/5 border border-black/5 dark:border-white/10 mb-4 cursor-pointer">
+        <button type="button" id="tab-login" class="py-2 text-xs font-bold rounded-xl transition-all duration-200 bg-amber-400 text-slate-950 shadow-sm cursor-pointer">
+          Вход
+        </button>
+        <button type="button" id="tab-register" class="py-2 text-xs font-bold rounded-xl transition-all duration-200 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white cursor-pointer">
+          Регистрация
+        </button>
+      </div>
+
+      <form id="auth-form" class="w-full flex flex-col gap-3">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1 px-1">Логин / никнейм</label>
+          <input type="text" id="auth-username" required placeholder="Например: цыпа_бро, alex" class="w-full liquid-interactive rounded-2xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-400/50 text-slate-900 dark:text-white">
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1 px-1">Пароль</label>
+          <input type="password" id="auth-password" required placeholder="••••••••" class="w-full liquid-interactive rounded-2xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-400/50 text-slate-900 dark:text-white">
+        </div>
+
+        <div id="auth-error" class="text-xs text-rose-500 text-center font-medium bg-rose-500/10 p-2.5 rounded-xl hidden"></div>
+
+        <button type="submit" id="auth-submit-btn" class="w-full py-3 mt-1 rounded-2xl bg-gradient-to-tr from-amber-400 via-amber-500 to-orange-500 text-slate-950 font-bold hover:brightness-105 transition shadow-lg text-sm cursor-pointer disabled:opacity-50">
+          Войти
+        </button>
+      </form>
+
+      <div class="mt-4 text-xs text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1">
+        <span id="auth-switch-text">Нет аккаунта?</span>
+        <button type="button" id="auth-switch-btn" class="text-amber-500 dark:text-amber-400 font-bold hover:underline cursor-pointer p-1">
+          Зарегистрироваться
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Затемняющий фон мобильного меню -->
+  <div id="sidebar-backdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-30 opacity-0 pointer-events-none transition-opacity duration-300 md:hidden"></div>
+
+  <!-- БОКОВОЕ МЕНЮ С ИСТОРИЕЙ ЧАТОВ -->
+  <aside id="sidebar-panel" class="liquid-panel fixed md:static inset-y-3 left-3 w-80 max-w-[85vw] rounded-4xl flex flex-col p-5 shrink-0 z-40 -translate-x-[110%] md:translate-x-0 transition-transform duration-300 ease-out md:m-3.5 md:mr-0 shadow-2xl md:shadow-none">
+    
+    <!-- Шапка профиля -->
+    <div class="flex items-center justify-between pb-3.5 border-b border-black/5 dark:border-white/10 shrink-0">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl p-[1.5px] bg-gradient-to-tr from-amber-300 via-amber-400 to-orange-400 shadow-md">
+          <div class="w-full h-full rounded-2xl bg-white/60 dark:bg-slate-900/80 flex items-center justify-center text-xl">🐣</div>
+        </div>
+        <div class="overflow-hidden">
+          <div class="flex items-center gap-1.5">
+            <h2 class="font-extrabold text-sm tracking-tight truncate max-w-[120px]" id="user-display-name">User</h2>
+            <span class="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-amber-400/20 text-amber-600 dark:text-amber-300 font-bold">CLOUD</span>
+          </div>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate">Ваша история чатов</p>
+        </div>
+      </div>
+      <button id="close-sidebar-btn" class="liquid-interactive p-2 rounded-xl text-slate-400 md:hidden">✕</button>
+    </div>
+
+    <!-- КНОПКА СОЗДАНИЯ НОВОГО ЧАТА -->
+    <button id="new-chat-btn" class="mt-3.5 w-full py-2.5 px-4 rounded-2xl bg-gradient-to-r from-amber-400/20 to-orange-400/20 hover:from-amber-400/30 hover:to-orange-400/30 border border-amber-400/30 text-amber-500 dark:text-amber-400 font-bold text-xs flex items-center justify-center gap-2 transition shadow-sm cursor-pointer shrink-0">
+      <span class="text-base leading-none">+</span> Новый чат
+    </button>
+
+    <!-- СПИСОК СОХРАНЕННЫХ ЧАТОВ ПОЛЬЗОВАТЕЛЯ -->
+    <div class="flex-1 flex flex-col gap-1.5 overflow-y-auto my-3 pr-1" id="chats-list-container">
+      <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1 mb-1">История диалогов</div>
+      <div id="chats-list" class="flex flex-col gap-1.5">
+        <!-- Сюда динамически подгружаются сохраненные чаты -->
+      </div>
+    </div>
+
+    <!-- Быстрые темы и фишки Цыпы -->
+    <div class="border-t border-black/5 dark:border-white/10 pt-2 flex flex-col gap-1.5 shrink-0">
+      <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">Фишки Цыпы</span>
+      <div class="grid grid-cols-2 gap-1.5">
+        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300" data-query="Что за принтерочек у тебя на продажу?">
+          🖨️ Принтерочек
+        </button>
+        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300" data-query="Расскажи про халявный тендер">
+          💼 Халявный тендер
+        </button>
+        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300" data-query="Зачем заходил Андроник и за что меня уволили?">
+          🚪 Звонок Андроника
+        </button>
+        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300" data-query="Выдай сочное битбокс соло на 10 секунд!">
+          🎤 Битбокс соло
+        </button>
+        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300" data-query="Есть ли у тебя списанный сервер или стойка?">
+          🖥️ Сервер со списания
+        </button>
+        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300" data-query="Как поднять бабла на госзакупках оргтехники?">
+          💰 Мутная схема
+        </button>
+      </div>
+    </div>
+
+    <!-- Нижняя плашка темы и выхода -->
+    <div class="pt-3 mt-2 border-t border-black/5 dark:border-white/10 flex items-center justify-between shrink-0">
+      <button id="theme-btn" class="liquid-interactive px-3 py-2 rounded-2xl text-xs font-medium cursor-pointer">🌙 Тема</button>
+      <button id="logout-btn" class="liquid-interactive p-2.5 rounded-2xl text-slate-400 hover:text-rose-500 cursor-pointer" title="Выйти из аккаунта">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Рабочая область чата -->
+  <main class="flex-1 flex flex-col m-2 sm:m-3.5 relative rounded-3xl sm:rounded-4xl liquid-panel overflow-hidden z-10 min-w-0">
+    <header class="px-4 sm:px-6 py-3.5 flex items-center justify-between border-b border-black/5 dark:border-white/10 shrink-0">
+      <div class="flex items-center gap-2.5 sm:gap-3">
+        <button id="open-sidebar-btn" class="liquid-interactive p-2 rounded-xl text-slate-700 dark:text-slate-200 md:hidden cursor-pointer">☰</button>
+        <div class="w-8 h-8 rounded-xl bg-amber-400 flex items-center justify-center text-xs shrink-0 md:hidden">🐣</div>
+        <div>
+          <h1 class="font-bold text-xs sm:text-sm tracking-tight flex items-center gap-1.5" id="current-chat-title">
+            Новый диалог
+          </h1>
+          <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 truncate" id="status-text">Готов торговать</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <div id="equalizer" class="flex items-end gap-0.5 sm:gap-1 h-5 px-2 py-1 rounded-xl bg-black/5 dark:bg-white/5">
+          <div class="sound-bar bg-amber-500 h-1"></div>
+          <div class="sound-bar bg-amber-500 h-1"></div>
+          <div class="sound-bar bg-amber-500 h-1"></div>
+          <div class="sound-bar bg-amber-500 h-1"></div>
+        </div>
+
+        <button id="mute-toggle" class="liquid-interactive p-2 rounded-xl text-slate-600 dark:text-slate-300 cursor-pointer" title="Вкл/Выкл звук">
+          <svg id="icon-sound-on" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+          <svg id="icon-sound-off" class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/></svg>
+        </button>
+
+        <button id="clear-chat-btn" class="liquid-interactive p-2 rounded-xl text-slate-400 hover:text-rose-500 cursor-pointer" title="Очистить текущий диалог">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="flex-1 overflow-y-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col gap-4" id="chat-container">
+      <div class="max-w-3xl w-full mx-auto flex flex-col gap-4" id="messages-list"></div>
+    </div>
+
+    <div class="p-2 sm:p-4 pt-1 shrink-0">
+      <div class="max-w-3xl w-full mx-auto">
+        <form id="chat-form" class="liquid-card rounded-2xl sm:rounded-3xl p-1.5 sm:p-2 flex items-end gap-1.5 sm:gap-2">
+          <button type="button" id="mic-btn" class="p-2 sm:p-2.5 rounded-xl text-slate-400 hover:text-amber-500 cursor-pointer" title="Микрофон">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+          </button>
+          <textarea id="user-input" rows="1" placeholder="Спроси у Цыпы..." class="flex-1 bg-transparent border-0 outline-none resize-none text-xs sm:text-sm py-2 max-h-32 text-slate-900 dark:text-white"></textarea>
+          <button type="submit" id="send-btn" class="p-2 sm:p-2.5 rounded-xl bg-gradient-to-tr from-amber-400 to-orange-500 text-slate-950 font-bold cursor-pointer">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const SUPABASE_URL = 'https://dasfqpvkahxfubsipdib.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhc2ZxcHZrYWh4ZnVic2lwZGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4MjkyNDksImV4cCI6MjEwNzQwNTI0OX0.d0tZVSe8zzQ7JNN3GW2255rUgVX5KxKgMN2XQjqVc30';
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    marked.setOptions({ breaks: true, gfm: true });
+
+    let currentUserId = localStorage.getItem('tsypa_user_id');
+    let currentUsername = localStorage.getItem('tsypa_username');
+    let currentChatId = null;
+    let isMuted = true;
+    let localChatHistory = [];
+    let isRegisterMode = false;
+
+    const authScreen = document.getElementById('auth-screen');
+    const authForm = document.getElementById('auth-form');
+    const authUsername = document.getElementById('auth-username');
+    const authPassword = document.getElementById('auth-password');
+    const authTitle = document.getElementById('auth-title');
+    const authSubtitle = document.getElementById('auth-subtitle');
+    const authSubmitBtn = document.getElementById('auth-submit-btn');
+    const authSwitchBtn = document.getElementById('auth-switch-btn');
+    const authSwitchText = document.getElementById('auth-switch-text');
+    const authError = document.getElementById('auth-error');
+    const tabLogin = document.getElementById('tab-login');
+    const tabRegister = document.getElementById('tab-register');
+    const userDisplayName = document.getElementById('user-display-name');
+    const logoutBtn = document.getElementById('logout-btn');
+    const chatsList = document.getElementById('chats-list');
+    const newChatBtn = document.getElementById('new-chat-btn');
+    const currentChatTitle = document.getElementById('current-chat-title');
+    const clearChatBtn = document.getElementById('clear-chat-btn');
+
+    // Переключение Вход / Регистрация
+    function setAuthMode(register) {
+      isRegisterMode = register;
+      authError.classList.add('hidden');
+
+      if (isRegisterMode) {
+        authTitle.textContent = 'Создать аккаунт';
+        authSubtitle.textContent = 'Придумайте любой логин и пароль';
+        authSubmitBtn.textContent = 'Зарегистрироваться';
+        authSwitchText.textContent = 'Уже есть аккаунт?';
+        authSwitchBtn.textContent = 'Войти';
+
+        tabRegister.className = 'py-2 text-xs font-bold rounded-xl transition-all duration-200 bg-amber-400 text-slate-950 shadow-sm cursor-pointer';
+        tabLogin.className = 'py-2 text-xs font-bold rounded-xl transition-all duration-200 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white cursor-pointer';
+      } else {
+        authTitle.textContent = 'Вход в терминал';
+        authSubtitle.textContent = 'Введите логин и пароль';
+        authSubmitBtn.textContent = 'Войти';
+        authSwitchText.textContent = 'Нет аккаунта?';
+        authSwitchBtn.textContent = 'Зарегистрироваться';
+
+        tabLogin.className = 'py-2 text-xs font-bold rounded-xl transition-all duration-200 bg-amber-400 text-slate-950 shadow-sm cursor-pointer';
+        tabRegister.className = 'py-2 text-xs font-bold rounded-xl transition-all duration-200 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white cursor-pointer';
+      }
+    }
+
+    tabLogin.addEventListener('click', () => setAuthMode(false));
+    tabRegister.addEventListener('click', () => setAuthMode(true));
+    authSwitchBtn.addEventListener('click', () => setAuthMode(!isRegisterMode));
+
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      authError.classList.add('hidden');
+      authSubmitBtn.disabled = true;
+      authSubmitBtn.textContent = 'Обработка...';
+
+      const username = authUsername.value.trim();
+      const password = authPassword.value;
+
+      try {
+        if (isRegisterMode) {
+          const { data: existing } = await supabaseClient
+            .from('app_users')
+            .select('id')
+            .eq('username', username)
+            .maybeSingle();
+
+          if (existing) throw new Error('Логин уже занят');
+
+          const { data: newUser, error: insertError } = await supabaseClient
+            .from('app_users')
+            .insert({ username, password })
+            .select()
+            .single();
+
+          if (insertError) throw insertError;
+          saveSession(newUser.id, newUser.username);
+        } else {
+          const { data: user, error: findError } = await supabaseClient
+            .from('app_users')
+            .select('*')
+            .eq('username', username)
+            .eq('password', password)
+            .maybeSingle();
+
+          if (findError) throw findError;
+          if (!user) throw new Error('Неверный логин или пароль');
+
+          saveSession(user.id, user.username);
+        }
+      } catch (err) {
+        authError.textContent = err.message || 'Ошибка входа';
+        authError.classList.remove('hidden');
+      } finally {
+        authSubmitBtn.disabled = false;
+        authSubmitBtn.textContent = isRegisterMode ? 'Зарегистрироваться' : 'Войти';
+      }
+    });
+
+    function saveSession(id, username) {
+      currentUserId = id;
+      currentUsername = username;
+      localStorage.setItem('tsypa_user_id', id);
+      localStorage.setItem('tsypa_username', username);
+
+      authScreen.classList.add('hidden');
+      userDisplayName.textContent = username;
+      initUserChats();
+    }
+
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('tsypa_user_id');
+      localStorage.removeItem('tsypa_username');
+      location.reload();
+    });
+
+    function checkAuthSession() {
+      if (currentUserId && currentUsername) {
+        authScreen.classList.add('hidden');
+        userDisplayName.textContent = currentUsername;
+        initUserChats();
+      } else {
+        authScreen.classList.remove('hidden');
+      }
+    }
+
+    // -------------------------------------------------------------
+    // РАБОТА С ИСТОРИЕЙ ЧАТОВ ПОЛЬЗОВАТЕЛЯ
+    // -------------------------------------------------------------
+    async function initUserChats() {
+      await loadUserChatsList();
+
+      // Если чаты есть — открываем последний, если нет — создаем новый
+      const firstChat = chatsList.querySelector('[data-chat-id]');
+      if (firstChat) {
+        const id = firstChat.getAttribute('data-chat-id');
+        const title = firstChat.getAttribute('data-chat-title');
+        selectChat(id, title);
+      } else {
+        createNewChat();
+      }
+    }
+
+    // Загрузка бокового списка диалогов конкретного пользователя
+    async function loadUserChatsList() {
+      chatsList.innerHTML = '';
+      try {
+        const { data: userChats, error } = await supabaseClient
+          .from('chats')
+          .select('id, title, created_at')
+          .eq('user_id', currentUserId)
+          .order('created_at', { ascending: false });
+
+        if (error) console.error('Ошибка загрузки списка чатов:', error);
+
+        if (userChats && userChats.length > 0) {
+          userChats.forEach(chat => {
+            renderChatItem(chat.id, chat.title);
+          });
+        }
+      } catch (err) {
+        console.error('Сбой загрузки чатов:', err);
+      }
+    }
+
+    function renderChatItem(id, title) {
+      const item = document.createElement('div');
+      item.setAttribute('data-chat-id', id);
+      item.setAttribute('data-chat-title', title);
+      item.className = `flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium cursor-pointer transition group ${
+        currentChatId === id
+          ? 'bg-amber-400/20 text-amber-500 dark:text-amber-300 font-bold border border-amber-400/30'
+          : 'liquid-interactive text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+      }`;
+
+      item.innerHTML = `
+        <span class="truncate flex-1 chat-title-text pr-2">${title}</span>
+        <button class="delete-chat-btn opacity-0 group-hover:opacity-100 p-1 hover:text-rose-500 transition text-slate-400" title="Удалить диалог">
+          ✕
+        </button>
+      `;
+
+      item.addEventListener('click', (e) => {
+        if (e.target.closest('.delete-chat-btn')) return;
+        selectChat(id, title);
+        if (window.innerWidth < 768) closeSidebar();
+      });
+
+      item.querySelector('.delete-chat-btn').addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (confirm(`Удалить диалог "${title}"?`)) {
+          await supabaseClient.from('chats').delete().eq('id', id);
+          item.remove();
+          if (currentChatId === id) {
+            initUserChats();
+          }
+        }
+      });
+
+      chatsList.appendChild(item);
+    }
+
+    // Выбор диалога
+    async function selectChat(id, title) {
+      currentChatId = id;
+      currentChatTitle.textContent = title;
+
+      // Обновляем подсветку активного чата в сайдбаре
+      document.querySelectorAll('#chats-list > div').forEach(el => {
+        if (el.getAttribute('data-chat-id') === id) {
+          el.className = 'flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold cursor-pointer transition group bg-amber-400/20 text-amber-500 dark:text-amber-300 border border-amber-400/30';
+        } else {
+          el.className = 'flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium cursor-pointer transition group liquid-interactive text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white';
+        }
+      });
+
+      loadChatMessages(id);
+    }
+
+    // Создание нового чата
+    async function createNewChat() {
+      try {
+        const { data: newChat, error } = await supabaseClient
+          .from('chats')
+          .insert({ user_id: currentUserId, title: 'Новый диалог' })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        await loadUserChatsList();
+        selectChat(newChat.id, newChat.title);
+        if (window.innerWidth < 768) closeSidebar();
+      } catch (err) {
+        console.error('Ошибка создания чата:', err);
+      }
+    }
+
+    newChatBtn.addEventListener('click', createNewChat);
+
+    // Загрузка сообщений выбранного чата
+    async function loadChatMessages(chatId) {
+      messagesList.innerHTML = '';
+      localChatHistory = [];
+
+      try {
+        const { data: msgs, error } = await supabaseClient
+          .from('messages')
+          .select('role, content')
+          .eq('chat_id', chatId)
+          .order('id', { ascending: true });
+
+        if (error) console.error('Ошибка сообщений:', error);
+
+        if (msgs && msgs.length > 0) {
+          msgs.forEach(m => {
+            localChatHistory.push({ role: m.role, content: m.content });
+            addMessage(m.role, m.content);
+          });
+        } else {
+          addMessage('assistant', 'Бжж-кхх-пущщ! Здорово, чувак! Заходил Андроник, просил передать — ты уволен! Но ты не кипишуй, слышишь? У меня тут списанный принтерочек есть на продажу и халявный тендер наклевывается. Залетаешь в тему или как? Пф-ту-пау!');
+        }
+      } catch (err) {
+        console.error('Ошибка подгрузки переписки:', err);
+      }
+    }
+
+    // Очистить текущий диалог
+    clearChatBtn.addEventListener('click', async () => {
+      if (!currentChatId) return;
+      if (confirm('Очистить сообщения в текущем диалоге?')) {
+        await supabaseClient.from('messages').delete().eq('chat_id', currentChatId);
+        messagesList.innerHTML = '';
+        localChatHistory = [];
+        addMessage('assistant', 'Диалог чист! Андроник всё равно заглядывал и передал, что ты уволен. Залетаем заново?');
+      }
+    });
+
+    // -------------------------------------------------------------
+    // СООБЩЕНИЯ И ЧАТ
+    // -------------------------------------------------------------
+    const messagesList = document.getElementById('messages-list');
+    const chatContainer = document.getElementById('chat-container');
+    const form = document.getElementById('chat-form');
+    const input = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
+    const micBtn = document.getElementById('mic-btn');
+    const muteToggle = document.getElementById('mute-toggle');
+    const equalizer = document.getElementById('equalizer');
+    const statusText = document.getElementById('status-text');
+
+    function scrollToBottom() {
+      chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
+    }
+
+    function playTTS(text, forcePlay = false) {
+      if (isMuted && !forcePlay) return;
+      if (!('speechSynthesis' in window)) return;
+
+      window.speechSynthesis.cancel();
+      const cleanText = text.replace(/```[\s\S]*?```/g, '').replace(/[*#`_~>\[\]]/g, '').trim().slice(0, 300);
+      if (!cleanText) return;
+
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.lang = 'ru-RU';
+      utterance.pitch = 0.75;
+      utterance.rate = 1.15;
+
+      const voices = window.speechSynthesis.getVoices();
+      const maleVoice = voices.find(v => v.lang.includes('ru') && (v.name.toLowerCase().includes('pavel') || v.name.toLowerCase().includes('дмитрий') || v.name.toLowerCase().includes('male'))) || voices.find(v => v.lang.includes('ru'));
+      if (maleVoice) utterance.voice = maleVoice;
+
+      equalizer.classList.add('sound-active');
+      statusText.textContent = 'Цыпа вещает...';
+
+      utterance.onend = utterance.onerror = () => {
+        equalizer.classList.remove('sound-active');
+        statusText.textContent = 'Готов торговать';
+      };
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function addMessage(role, content) {
+      const wrapper = document.createElement('div');
+      wrapper.className = `flex items-start gap-2.5 ${role === 'user' ? 'justify-end' : ''}`;
+
+      if (role === 'assistant') {
+        const parsed = marked.parse(content);
+        wrapper.innerHTML = `
+          <div class="w-8 h-8 rounded-2xl bg-amber-400 flex items-center justify-center text-xs shrink-0 mt-0.5 shadow-sm">🐣</div>
+          <div class="liquid-card rounded-3xl rounded-tl-md p-3.5 max-w-[88%] text-xs sm:text-sm prose-content shadow-sm">
+            <div>${parsed}</div>
+            <div class="flex items-center gap-3 mt-3 pt-2 border-t border-black/5 dark:border-white/10 text-[11px] text-slate-400">
+              <button class="hover:text-amber-500 transition replay-btn">🔊 Послушать</button>
+              <span>•</span>
+              <button class="hover:text-amber-500 transition copy-msg-btn">📋 Скопировать</button>
+            </div>
+          </div>
+        `;
+        wrapper.querySelector('.replay-btn').addEventListener('click', () => playTTS(content, true));
+        wrapper.querySelector('.copy-msg-btn').addEventListener('click', (e) => {
+          navigator.clipboard.writeText(content).then(() => {
+            e.target.textContent = '✅ Скопировано';
+            setTimeout(() => { e.target.textContent = '📋 Скопировать'; }, 2000);
+          });
+        });
+      } else {
+        wrapper.innerHTML = `<div class="user-bubble text-white font-medium rounded-2xl px-3.5 py-2 max-w-[80%] text-xs sm:text-sm leading-relaxed">${content}</div>`;
+      }
+
+      messagesList.appendChild(wrapper);
+      scrollToBottom();
+      wrapper.querySelectorAll('pre code').forEach(b => hljs.highlightElement(b));
+    }
+
+    async function sendMessage(text) {
+      if (!text || sendBtn.disabled || !currentUserId || !currentChatId) return;
+
+      addMessage('user', text);
+      localChatHistory.push({ role: 'user', content: text });
+
+      // Сохраняем в Supabase с привязкой к currentChatId
+      await supabaseClient.from('messages').insert({
+        user_id: currentUserId,
+        chat_id: currentChatId,
+        role: 'user',
+        content: text
+      });
+
+      // Если это первое сообщение в чате, обновляем название темы диалога
+      if (localChatHistory.length === 1 || currentChatTitle.textContent === 'Новый диалог') {
+        const shortTitle = text.slice(0, 24) + (text.length > 24 ? '...' : '');
+        currentChatTitle.textContent = shortTitle;
+        await supabaseClient.from('chats').update({ title: shortTitle }).eq('id', currentChatId);
+        loadUserChatsList();
+      }
+
+      input.value = '';
+      sendBtn.disabled = true;
+      statusText.textContent = 'Цыпа думает...';
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: localChatHistory })
+        });
+        const data = await res.json();
+        if (data.reply) {
+          addMessage('assistant', data.reply);
+          localChatHistory.push({ role: 'assistant', content: data.reply });
+          await supabaseClient.from('messages').insert({
+            user_id: currentUserId,
+            chat_id: currentChatId,
+            role: 'assistant',
+            content: data.reply
+          });
+          playTTS(data.reply);
+        } else {
+          addMessage('assistant', 'Бжж-кхх... Андроник провод перегрыз!');
+        }
+      } catch (err) {
+        addMessage('assistant', 'Сбой связи с сервером.');
+      } finally {
+        sendBtn.disabled = false;
+        statusText.textContent = 'Готов торговать';
+        input.focus();
+      }
+    }
+
+    form.addEventListener('submit', (e) => { e.preventDefault(); sendMessage(input.value.trim()); });
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'ru-RU';
+      micBtn.addEventListener('click', () => recognition.start());
+      recognition.onresult = (e) => sendMessage(e.results[0][0].transcript);
+    } else {
+      micBtn.style.display = 'none';
+    }
+
+    muteToggle.addEventListener('click', () => {
+      isMuted = !isMuted;
+      document.getElementById('icon-sound-on').classList.toggle('hidden', isMuted);
+      document.getElementById('icon-sound-off').classList.toggle('hidden', !isMuted);
+    });
+
+    document.querySelectorAll('.quick-topic').forEach(btn => {
+      btn.addEventListener('click', () => {
+        sendMessage(btn.getAttribute('data-query'));
+        closeSidebar();
+      });
+    });
+
+    const sidebarPanel = document.getElementById('sidebar-panel');
+    const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+    function openSidebar() {
+      sidebarPanel.classList.remove('-translate-x-[110%]');
+      sidebarBackdrop.classList.remove('opacity-0', 'pointer-events-none');
+    }
+    function closeSidebar() {
+      sidebarPanel.classList.add('-translate-x-[110%]');
+      sidebarBackdrop.classList.add('opacity-0', 'pointer-events-none');
+    }
+    document.getElementById('open-sidebar-btn').addEventListener('click', openSidebar);
+    document.getElementById('close-sidebar-btn').addEventListener('click', closeSidebar);
+    sidebarBackdrop.addEventListener('click', closeSidebar);
+
+    document.getElementById('theme-btn').addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+    });
+
+    checkAuthSession();
+  </script>
+</body>
+</html>
