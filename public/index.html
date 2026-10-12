@@ -2,7 +2,7 @@
 <html lang="ru" class="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>ЦЫПА // Liquid Workspace</title>
 
   <!-- Tailwind CSS -->
@@ -106,9 +106,14 @@
     .prose-content { word-break: break-word; line-height: 1.62; }
     .prose-content p { margin-bottom: 0.75rem; }
     .prose-content p:last-child { margin-bottom: 0; }
+
+    /* Безопасный отступ для мобильных устройств (iOS Home Bar / Android Navigation) */
+    .mobile-safe-bottom {
+      padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+    }
   </style>
 </head>
-<body class="h-screen w-screen overflow-hidden relative bg-slate-100 dark:bg-[#07090e] text-slate-800 dark:text-slate-100 font-sans flex">
+<body class="h-[100dvh] w-screen overflow-hidden relative bg-slate-100 dark:bg-[#07090e] text-slate-800 dark:text-slate-100 font-sans flex">
 
   <!-- Фоновые капли -->
   <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
@@ -166,7 +171,7 @@
   <div id="sidebar-backdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-30 opacity-0 pointer-events-none transition-opacity duration-300 md:hidden"></div>
 
   <!-- БОКОВОЕ МЕНЮ С ИСТОРИЕЙ ЧАТОВ -->
-  <aside id="sidebar-panel" class="liquid-panel fixed md:static inset-y-3 left-3 w-80 max-w-[85vw] rounded-4xl flex flex-col p-5 shrink-0 z-40 -translate-x-[110%] md:translate-x-0 transition-transform duration-300 ease-out md:m-3.5 md:mr-0 shadow-2xl md:shadow-none">
+  <aside id="sidebar-panel" class="liquid-panel fixed md:static inset-y-2 left-2 w-80 max-w-[85vw] rounded-3xl md:rounded-4xl flex flex-col p-4 sm:p-5 shrink-0 z-40 -translate-x-[110%] md:translate-x-0 transition-transform duration-300 ease-out md:m-3.5 md:mr-0 shadow-2xl md:shadow-none h-[calc(100dvh-1rem)] md:h-[calc(100dvh-1.75rem)]">
     
     <!-- Шапка профиля -->
     <div class="flex items-center justify-between pb-3.5 border-b border-black/5 dark:border-white/10 shrink-0">
@@ -198,26 +203,26 @@
       </div>
     </div>
 
-    <!-- Быстрые темы и фишки Цыпы -->
-    <div class="border-t border-black/5 dark:border-white/10 pt-2 flex flex-col gap-1.5 shrink-0">
+    <!-- РАСШИРЕННЫЙ БЛОК: ФИШКИ ЦЫПЫ -->
+    <div class="border-t border-black/5 dark:border-white/10 pt-2.5 flex flex-col gap-1.5 shrink-0">
       <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">Фишки Цыпы</span>
       <div class="grid grid-cols-2 gap-1.5">
-        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300" data-query="Что за принтерочек у тебя на продажу?">
+        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300 cursor-pointer" data-query="Что за принтерочек у тебя на продажу?">
           🖨️ Принтерочек
         </button>
-        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300" data-query="Расскажи про халявный тендер">
+        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300 cursor-pointer" data-query="Расскажи про халявный тендер">
           💼 Халявный тендер
         </button>
-        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300" data-query="Зачем заходил Андроник и за что меня уволили?">
+        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300 cursor-pointer" data-query="Зачем заходил Андроник и за что меня уволили?">
           🚪 Звонок Андроника
         </button>
-        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300" data-query="Выдай сочное битбокс соло на 10 секунд!">
+        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300 cursor-pointer" data-query="Выдай сочное битбокс соло на 10 секунд!">
           🎤 Битбокс соло
         </button>
-        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300" data-query="Есть ли у тебя списанный сервер или стойка?">
-          🖥️ Сервер со списания
+        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300 cursor-pointer" data-query="Есть ли у тебя списанный сервер или стойка?">
+          🖥️ Списанный сервер
         </button>
-        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300" data-query="Как поднять бабла на госзакупках оргтехники?">
+        <button class="quick-topic text-left liquid-interactive px-2 py-1.5 rounded-xl text-[11px] truncate text-slate-600 dark:text-slate-300 cursor-pointer" data-query="Как поднять бабла на госзакупках оргтехники?">
           💰 Мутная схема
         </button>
       </div>
@@ -232,9 +237,11 @@
     </div>
   </aside>
 
-  <!-- Рабочая область чата -->
-  <main class="flex-1 flex flex-col m-2 sm:m-3.5 relative rounded-3xl sm:rounded-4xl liquid-panel overflow-hidden z-10 min-w-0">
-    <header class="px-4 sm:px-6 py-3.5 flex items-center justify-between border-b border-black/5 dark:border-white/10 shrink-0">
+  <!-- ОСНОВНАЯ РАБОЧАЯ ОБЛАСТЬ (СТРОГО ВПИСАНА В 100dvh) -->
+  <main class="flex-1 flex flex-col m-1.5 sm:m-3.5 relative rounded-2xl sm:rounded-4xl liquid-panel overflow-hidden z-10 min-w-0 h-[calc(100dvh-0.75rem)] sm:h-[calc(100dvh-1.75rem)]">
+    
+    <!-- Верхняя шапка -->
+    <header class="px-3.5 sm:px-6 py-2.5 sm:py-3.5 flex items-center justify-between border-b border-black/5 dark:border-white/10 shrink-0">
       <div class="flex items-center gap-2.5 sm:gap-3">
         <button id="open-sidebar-btn" class="liquid-interactive p-2 rounded-xl text-slate-700 dark:text-slate-200 md:hidden cursor-pointer">☰</button>
         <div class="w-8 h-8 rounded-xl bg-amber-400 flex items-center justify-center text-xs shrink-0 md:hidden">🐣</div>
@@ -242,7 +249,7 @@
           <h1 class="font-bold text-xs sm:text-sm tracking-tight flex items-center gap-1.5" id="current-chat-title">
             Новый диалог
           </h1>
-          <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 truncate" id="status-text">Готов торговать</p>
+          <p class="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 truncate" id="status-text">Готов торговать</p>
         </div>
       </div>
 
@@ -265,18 +272,20 @@
       </div>
     </header>
 
-    <div class="flex-1 overflow-y-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col gap-4" id="chat-container">
-      <div class="max-w-3xl w-full mx-auto flex flex-col gap-4" id="messages-list"></div>
+    <!-- Скролл-область сообщений -->
+    <div class="flex-1 overflow-y-auto px-3 sm:px-6 py-3 sm:py-6 flex flex-col gap-3 sm:gap-4 min-h-0" id="chat-container">
+      <div class="max-w-3xl w-full mx-auto flex flex-col gap-3 sm:gap-4" id="messages-list"></div>
     </div>
 
-    <div class="p-2 sm:p-4 pt-1 shrink-0">
+    <!-- Нижняя панель ввода (с защитой от вылета за экран) -->
+    <div class="p-2 sm:p-4 pt-1 shrink-0 mobile-safe-bottom">
       <div class="max-w-3xl w-full mx-auto">
-        <form id="chat-form" class="liquid-card rounded-2xl sm:rounded-3xl p-1.5 sm:p-2 flex items-end gap-1.5 sm:gap-2">
-          <button type="button" id="mic-btn" class="p-2 sm:p-2.5 rounded-xl text-slate-400 hover:text-amber-500 cursor-pointer" title="Микрофон">
+        <form id="chat-form" class="liquid-card rounded-2xl sm:rounded-3xl p-1 sm:p-2 flex items-end gap-1.5 sm:gap-2">
+          <button type="button" id="mic-btn" class="p-2 sm:p-2.5 rounded-xl text-slate-400 hover:text-amber-500 cursor-pointer shrink-0" title="Микрофон">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
           </button>
-          <textarea id="user-input" rows="1" placeholder="Спроси у Цыпы..." class="flex-1 bg-transparent border-0 outline-none resize-none text-xs sm:text-sm py-2 max-h-32 text-slate-900 dark:text-white"></textarea>
-          <button type="submit" id="send-btn" class="p-2 sm:p-2.5 rounded-xl bg-gradient-to-tr from-amber-400 to-orange-500 text-slate-950 font-bold cursor-pointer">
+          <textarea id="user-input" rows="1" placeholder="Спроси у Цыпы..." class="flex-1 bg-transparent border-0 outline-none resize-none text-xs sm:text-sm py-2 max-h-24 sm:max-h-32 text-slate-900 dark:text-white"></textarea>
+          <button type="submit" id="send-btn" class="p-2 sm:p-2.5 rounded-xl bg-gradient-to-tr from-amber-400 to-orange-500 text-slate-950 font-bold cursor-pointer shrink-0">
             <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 12h14M12 5l7 7-7 7"/></svg>
           </button>
         </form>
@@ -318,7 +327,6 @@
     const currentChatTitle = document.getElementById('current-chat-title');
     const clearChatBtn = document.getElementById('clear-chat-btn');
 
-    // Переключение Вход / Регистрация
     function setAuthMode(register) {
       isRegisterMode = register;
       authError.classList.add('hidden');
@@ -424,13 +432,9 @@
       }
     }
 
-    // -------------------------------------------------------------
-    // РАБОТА С ИСТОРИЕЙ ЧАТОВ ПОЛЬЗОВАТЕЛЯ
-    // -------------------------------------------------------------
     async function initUserChats() {
       await loadUserChatsList();
 
-      // Если чаты есть — открываем последний, если нет — создаем новый
       const firstChat = chatsList.querySelector('[data-chat-id]');
       if (firstChat) {
         const id = firstChat.getAttribute('data-chat-id');
@@ -441,7 +445,6 @@
       }
     }
 
-    // Загрузка бокового списка диалогов конкретного пользователя
     async function loadUserChatsList() {
       chatsList.innerHTML = '';
       try {
@@ -500,12 +503,10 @@
       chatsList.appendChild(item);
     }
 
-    // Выбор диалога
     async function selectChat(id, title) {
       currentChatId = id;
       currentChatTitle.textContent = title;
 
-      // Обновляем подсветку активного чата в сайдбаре
       document.querySelectorAll('#chats-list > div').forEach(el => {
         if (el.getAttribute('data-chat-id') === id) {
           el.className = 'flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold cursor-pointer transition group bg-amber-400/20 text-amber-500 dark:text-amber-300 border border-amber-400/30';
@@ -517,7 +518,6 @@
       loadChatMessages(id);
     }
 
-    // Создание нового чата
     async function createNewChat() {
       try {
         const { data: newChat, error } = await supabaseClient
@@ -538,7 +538,6 @@
 
     newChatBtn.addEventListener('click', createNewChat);
 
-    // Загрузка сообщений выбранного чата
     async function loadChatMessages(chatId) {
       messagesList.innerHTML = '';
       localChatHistory = [];
@@ -565,7 +564,6 @@
       }
     }
 
-    // Очистить текущий диалог
     clearChatBtn.addEventListener('click', async () => {
       if (!currentChatId) return;
       if (confirm('Очистить сообщения в текущем диалоге?')) {
@@ -576,9 +574,6 @@
       }
     });
 
-    // -------------------------------------------------------------
-    // СООБЩЕНИЯ И ЧАТ
-    // -------------------------------------------------------------
     const messagesList = document.getElementById('messages-list');
     const chatContainer = document.getElementById('chat-container');
     const form = document.getElementById('chat-form');
@@ -592,6 +587,12 @@
     function scrollToBottom() {
       chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
     }
+
+    // Автоподстройка высоты текстового поля при вводе
+    input.addEventListener('input', () => {
+      input.style.height = 'auto';
+      input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+    });
 
     function playTTS(text, forcePlay = false) {
       if (isMuted && !forcePlay) return;
@@ -660,7 +661,6 @@
       addMessage('user', text);
       localChatHistory.push({ role: 'user', content: text });
 
-      // Сохраняем в Supabase с привязкой к currentChatId
       await supabaseClient.from('messages').insert({
         user_id: currentUserId,
         chat_id: currentChatId,
@@ -668,7 +668,6 @@
         content: text
       });
 
-      // Если это первое сообщение в чате, обновляем название темы диалога
       if (localChatHistory.length === 1 || currentChatTitle.textContent === 'Новый диалог') {
         const shortTitle = text.slice(0, 24) + (text.length > 24 ? '...' : '');
         currentChatTitle.textContent = shortTitle;
@@ -677,6 +676,7 @@
       }
 
       input.value = '';
+      input.style.height = 'auto';
       sendBtn.disabled = true;
       statusText.textContent = 'Цыпа думает...';
 
